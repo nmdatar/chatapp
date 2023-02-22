@@ -28,6 +28,8 @@ Run Server `python3 chatapp_grpc/server.py`
 
 Run Client `python3 chatapp_grpc/client.py`
 
+Install .proto file `python3 -m grpc_tools.protoc --proto_path=. ./proto/chatapp.proto --python_out=. --grpc_python_out=.`
+
 ### WebSocket
 
 Run Server `python3 chatapp_websocket/server.py`
