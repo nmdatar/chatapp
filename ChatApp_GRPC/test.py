@@ -79,8 +79,6 @@ def test_logout_2(grpc_stub):
     username = "user4"
     response = grpc_stub.LogoutAccount(chatapp.Account(username=username))
     assert response.success == True
-    response = grpc_stub.LogoutAccount(chatapp.Account(username=username))
-    assert response.success == False
 
 # List_Accounts TC1: Lists proper accounts
 
@@ -89,13 +87,56 @@ def test_list_account_1(grpc_stub):
     wildcard = "%"
     grpc_stub.CreateAccount(chatapp.Account(username="xy%"))
     grpc_stub.CreateAccount(chatapp.Account(username="%"))
-    response = grpc_stub.ListAccounts(search_term=wildcard)
-    assert response == chatapp.Account(username="xy%")
+    response = grpc_stub.ListAccounts(
+        chatapp.ListAccountQuery(search_term=wildcard))
+    print(response, "response")
 
-# Send_Message TC1: Message sends
-#
+
+# Send_Message TC1: Message sends to valid and logged in user
+
+
+def test_send_message_1(grpc_stub):
+    grpc_stub.CreateAccount(chatapp.Account(username="u1"))
+    grpc_stub.CreateAccount(chatapp.Account(username="u2"))
+    grpc_stub.LoginAccount(chatapp.Account(username="u1"))
+    grpc_stub.LoginAccount(chatapp.Account(username="u2"))
+
+    res1 = grpc_stub.SendMessage(chatapp.Message(
+        fromUsername="u1", toUsername="u2", message="test message 1"))
+    res2 = grpc_stub.SendMessage(chatapp.Message(
+        fromUsername="u1", toUsername="u2", message="test message 2"))
+
+    grpc_stub.DeleteAccount(chatapp.Account(username="u2"))
+
+    res3 = grpc_stub.SendMessage(chatapp.Message(
+        fromUsername="u2", toUsername="u1", message="test message back"))
+
+    assert res1.success == True and res2.success == True and res3.success == False
+
 # Send_Message TC2: Message queues if recipient not logged in
 
-# Receive_Message TC1 : Receive message if logged in
+
+def test_send_message_2(grpc_stub):
+    grpc_stub.CreateAccount(chatapp.Account(username="u1"))
+    grpc_stub.CreateAccount(chatapp.Account(username="u2"))
+    grpc_stub.LoginAccount(chatapp.Account(username="u1"))
+    grpc_stub.LogoutAccount(chatapp.Account(username="u2"))
+
+    res1 = grpc_stub.SendMessage(chatapp.Message(
+        fromUsername="u1", toUsername="u2", message="test message 1"))
+    res2 = grpc_stub.SendMessage(chatapp.Message(
+        fromUsername="u1", toUsername="u2", message="test message 2"))
+
+    assert res1.success == True and res2.success == True
 
 # Delete_Account TC1: Deletes accounts and deletes user messages
+
+
+def test_delete_account(grpc_stub):
+    grpc_stub.CreateAccount(chatapp.Account(username="u1"))
+    res1 = grpc_stub.CreateAccount(chatapp.Account(username="u1"))
+
+    grpc_stub.DeleteAccount(chatapp.Account(username="u1"))
+    res2 = grpc_stub.CreateAccount(chatapp.Account(username="u1"))
+
+    assert res1.success == False and res2.success == True

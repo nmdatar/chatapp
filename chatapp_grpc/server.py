@@ -58,11 +58,11 @@ class ChatServer(rpc.ChatServiceServicer):
 
         # delete messages
         for message_obj in self.messages:
-            if message_obj['fromUserame'] == username:
+            if message_obj['fromUsername'] == username:
                 self.messages.remove(message_obj)
 
         for message_obj in self.queued_messages:
-            if message_obj['fromUserame'] == username:
+            if message_obj['fromUsername'] == username:
                 self.queued_messages.remove(message_obj)
 
         return chatapp.CommonResponse(success=True, message="Username deleted Succesfully")
@@ -131,7 +131,7 @@ class ChatServer(rpc.ChatServiceServicer):
             'message': message
         }
         # add message to message list if recipient is logged in
-        if (self.usernames[toUsername]):
+        if (self.usernames[toUsername]["online"] == True):
             self.messages.append(message_obj)
             return chatapp.CommonResponse(success=True, message="Message Queued")
         else:
@@ -147,11 +147,11 @@ class ChatServer(rpc.ChatServiceServicer):
         while True:
             # retry undelivered message flag is on
             if self.retry_flag is not None:
+                print("queue", self.queued_messages[:])
                 for message_obj in self.queued_messages[:]:
-
                     # send only to online users
                     if (message_obj["toUsername"] == self.retry_flag
-                            and self.usernames[message_obj["toUsername"]]):
+                            and self.usernames[message_obj["toUsername"]]["online"] == True):
                         # delete queued message in original queue
                         self.queued_messages.remove(message_obj)
                         yield chatapp.Message(fromUsername=message_obj['fromUsername'], toUsername=message_obj['toUsername'], message=message_obj['message'])

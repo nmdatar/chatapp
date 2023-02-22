@@ -97,14 +97,14 @@ class Client:
             print(f'Message retry delivery failed...')
 
     def deliver_messages(self):
-        toUsername = input(
+        username = input(
             "Which username do you want to retry message delivery:\n")
 
-        res = self.conn.DeliverMessages(chatapp.User(username=toUsername))
+        res = self.conn.DeliverMessages(chatapp.User(username=username))
 
         print(res)
         if res.success:
-            print(f'Message successfully delivered')
+            print(f'Message delivering')
         else:
             print(f'Message retry delivery failed...')
 
